@@ -1,0 +1,36 @@
+  if (command == "cn"):
+    if (argument != "none"):
+      print("this the argument: "+argument)
+      name = argument.split(" ",1)[1]
+      user = message.mentions[0]
+      found = False;
+      print("There are "+str(len(namechanges))+" pending changes!")
+      #look for an existing name
+      if (len(namechanges)>0):
+        for change in namechanges:
+          print("User:" +change.member.name+" Name: "+change.name)
+          for voter in  change.voters:
+            print(voter.name)
+          if (change.member == user and change.name == name):
+            found = True
+          if (message.author in change.voters and change.member == user and change.name == name):
+            found = True
+            await message.channel.send("You already voted for this nickname change!")
+          #person types in a requset that's already registerd but their name isn't in it
+          if (change.member == user and change.name == name and message.author not in change.voters):
+            change.votes += 1
+            await message.channel.send("The request to change "+user.name+"'s name to "+name+" has "+str(change.votes)+" votes! Only "+str(3-change.votes)+" more votes needed!")
+            found = True
+            print("adding new voter to vote for "+change.member.name+" to "+change.name)
+            change.voters.append(message.author)
+            if (change.votes == 3):
+              await user.edit(nick = name)
+              await message.channel.send("Nickname changed!")
+              del change
+      if (found == False):
+        print("new name change!")
+        chng = namechange(user,name)
+        chng.votes += 1
+        chng.voters.append(message.author)
+        await message.channel.send("The request to change "+user.name+"'s name to "+name+" has "+str(chng.votes)+" vote(s)! Only "+str(3-chng.votes)+" more votes needed!")
+        namechanges.append(chng)
