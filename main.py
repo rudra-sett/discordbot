@@ -3,8 +3,8 @@ import time
 import os
 import random
 import yfinance as yf
-import pandas as pd
 import requests
+import asyncio
 import datetime
 import matplotlib.pyplot as plt
 from bs4 import BeautifulSoup as BS
@@ -333,7 +333,7 @@ async def processmessage(message,reacter=None):
     if (len(argument)<5):
       await message.channel.send("Please provide a valid question!")
       return
-    await message.channel.send("Creating a poll to ask, '"+question+"'\n Please provide a comma-separated list of options.")
+    await message.channel.send("Creating a poll to ask, '"+question+"'\nPlease provide a comma-separated list of options.")
 
     #get options into a list and a dict with votes
     def checkoptions(m):
@@ -392,28 +392,41 @@ async def processmessage(message,reacter=None):
     #async def listvotes():
     print("about to print the options!")
     print(optionnames)
+    output = ""
     for idx,option in enumerate(optionnames):
       print("iterating...")
-      await message.channel.send("Respond with "+str(idx)+" to vote for "+option+" Votes: "+str(options[option])) 
+      #await message.channel.send("Respond with "+str(idx)+" to vote for "+option+" Votes: "+str(options[option])) 
+      output = output + "Respond with "+str(idx)+" to vote for "+option+" Votes: "+str(options[option])+"\n"
+    await message.channel.send(output)
     running = True 
     #listvotes()
     starttime = time.time()    
     while running:
-      global running
-      msg = await client.wait_for('message', check=check)
+      elapsed = time.time()-starttime
+      msg
+      try:
+        msg = await client.wait_for('message', check=check,timeout=(maxtime-elapsed))
+      except asyncio.TimeoutError:
+        msg = message
       try: 
         options[optionnames[int(msg.content)]] += 1
         voters.append(msg.author)
         await message.channel.send(msg.author.name+" voted for "+optionnames[int(msg.content)])
+        output = ""
         for idx,option in enumerate(optionnames):
-          await message.channel.send("Respond with "+str(idx)+" to vote for '"+option+"' Votes: "+str(options[option]))
+          print("iterating...")
+          #await message.channel.send("Respond with "+str(idx)+" to vote for "+option+" Votes: "+str(options[option])) 
+          output = output + "Respond with "+str(idx)+" to vote for "+option+" Votes: "+str(options[option])+"\n"
+        await message.channel.send(output)
       except IndexError:
         await message.channel.send("Not a valid option!")
       except ValueError:
         pass
         #await message.channel.send("Not a valid option!")
-      if (time.time()-starttime > maxtime):
+      print(time.time()-starttime)
+      if (elapsed > maxtime):
         running = False
+        print("this happened!")
     maxkey = max(options, key=options.get) 
     print(maxkey) 
     await message.channel.send("The option with the highest votes was "+maxkey+"!")
