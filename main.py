@@ -180,9 +180,13 @@ async def processmessage(message,reacter=None):
   if (command == "rng"):
     mini = 0
     maxi = 10
-    mini,maxi = argument.split(" ",1)
+    try:
+      mini,maxi = argument.split(" ",1)
+    except ValueError:
+      await message.channel.send("If you want, you can specify a minimum and maximum range like this: \npp rng min max")
+      pass
     num = random.randint(int(mini),int(maxi))
-    await message.channel.send("Here's a random number between "+mini+" and "+maxi+": "+str(num))
+    await message.channel.send("Here's a random number between "+str(mini)+" and "+str(maxi)+": "+str(num))
   
   #name change voter
   if (command == "cn"):
@@ -314,6 +318,60 @@ async def processmessage(message,reacter=None):
   if (command == "empire"):
     empires.append(farm())
   if(command == "poll"):
-    #pp poll (question) (options, separated by commas) (max time)
-    pass
+    #pp poll (question),(options, separated by spaces),(max time)
+    #arguments = argument.split(",",2)
+    arguments = argument
+    starter = message.author
+    question = ""
+    optionnames = []
+    options = {}
+    maxtime = 60
+    running = False
+    channel = message.channel
+    voters = []
+
+    #get question
+    if (len(argument)<4):
+      await message.channel.send("Please provide a valid question!")
+      return
+    await message.channel.send("Creating a poll to ask, '"+question+"'\n Please provide a comma-separated list of options.")
+
+    #get options into a list and a dict with votes
+    def checkoptions(m):
+      try:
+        optionnames = m.split(",")
+        for name in optionnames:
+          options[name] = 0
+        running = True
+      except:
+        await message.channel.send("Please provide a list of period-separated options!")
+        return
+      return m.channel == channel and m.author == starter
+    msg = await client.wait_for('message', check=checkoptions)
+    
+    await message.channel.send("Please provide the amount of time the poll is to run for (Default is 60)")
+    #get the max time
+    def checktime(m):
+      try:
+        maxtime = int(m.content)
+      except:
+        await message.channel.send("Not a valid number of seconds! Defaulting to 60.") 
+      return m.channel == channel and m.author == starter
+   
+    #checker for mesage wait
+    def check(m):
+      return int(m.content)<len(optionnames) and m.channel == channel and m.author not in voters
+    
+    ##### STARTING POLL!!!!
+    await message.channel.send("Please respond with the following to vote on the question, '"+question+"':")
+    #list options
+    async def listvotes():
+      for idx,option in enumerate(optionnames):
+        await message.channel.send("Respond with "+str(idx)+" to vote for "+option+" Votes: "+str(options[option]))
+    await listvotes()    
+    while running:
+      msg = await client.wait_for('message', check=check)
+      voters.append(msg.author)
+      await message.channel.send(msg.author.name+" voted for "+optionnames[int(msg.content)])
+      listvotes()
 client.run(os.getenv('TOKEN'))
