@@ -94,26 +94,30 @@ namechanges = []
 ####################################
 class farm:
   def __init__(self):
-    self.troops = []
     self.level = 1
     self.xp = 0
     self.bal = 0
+    self.land = 60
     self.debt = 15000
-empires = []
-class basictroop:
-  def __init__(self):
+    self.animals = []
+    self.buildings = []
+    self.owner
+farms = []
+animalclasses = ["cow","horse","pig","chicken","mink"]
+class animal:
+  def __init__(self,type,attack,defense,level,xp):
+    self.type = ""
     self.attack = 1
     self.level = 1
     self.xp = 0
-class heavytroop:
-  def __init__(self):
-    self.attack = 3
+    self.age = 0
+buildingclasses = ["barn","stable"]
+class building:
+  def __init__(self,type):
+    self.type = ""
     self.level = 1
     self.xp = 0
-class scientist:
-  def __init__(self):
-    self.level = 1
-    self.xp = 0
+    self.value = 10000
 ##########handle reactions
 @client.event
 async def on_reaction_add(reaction, user):
@@ -315,8 +319,12 @@ async def processmessage(message,reacter=None):
     pass
 
   #clash royale kind of thing
-  if (command == "empire"):
-    empires.append(farm())
+  if (command == "farm"):
+    args = argument.split(" ")
+    if (args[0] == "new"):
+      farms.append(farm())
+  
+  #poll
   if(command == "poll"):
     #pp poll (question),(options, separated by spaces),(max time)
     #arguments = argument.split(",",2)
