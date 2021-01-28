@@ -1,0 +1,17 @@
+#A farm
+#it has a set amount of land, which can be expanded
+#land allows for growing crops and keeping animals
+#income is based on crops and animals (continuous, not realistic or anything)
+#requires working
+#can hire someone to auto-work
+#a farm may be expanded to include more things, like creameries and whatnot
+#more buildings offer new ways to make profit
+
+
+#farm could pay for a mining operation
+#prices of goods depends on how many people are selling stuff
+#people can sell at the price they want - lose money, OR just don't make money
+#guh just buy other businesses I guess
+
+#player interaction involves giving loans
+#could take buildings

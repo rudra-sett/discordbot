@@ -8,6 +8,7 @@ import asyncio
 import datetime
 import matplotlib.pyplot as plt
 from bs4 import BeautifulSoup as BS
+from collections import Counter
 
 client = discord.Client()
 
@@ -91,7 +92,7 @@ class namechange:
     self.votes =0
     self.voters = []
 namechanges = []
-####################################
+################ farming things
 class farm:
   def __init__(self):
     self.level = 1
@@ -101,9 +102,9 @@ class farm:
     self.debt = 15000
     self.animals = []
     self.buildings = []
-    self.owner
+    self.owner = None
 farms = []
-animalclasses = ["cow","horse","pig","chicken","mink"]
+animalclasses = ["cow","horse","pig","chicken","sheep"]
 class animal:
   def __init__(self,type,attack,defense,level,xp):
     self.type = ""
@@ -118,6 +119,19 @@ class building:
     self.level = 1
     self.xp = 0
     self.value = 10000
+##############################################
+class college:
+  def __init__(self):
+    self.name = ""
+    self.owner = None
+    self.acceptrate = 1
+    self.faculty = []
+    self.departments = []
+    self.endowment = 10000000
+    self.budget = 5000000
+    self.enrollment = 0
+colleges = []
+##############################################
 ##########handle reactions
 @client.event
 async def on_reaction_add(reaction, user):
@@ -126,11 +140,22 @@ async def on_reaction_add(reaction, user):
 #########################
 
 ############handle messages
+usermessages = {}
 @client.event
 async def on_message(message):
     if message.author == client.user:
         return
-
+    try:
+      #print(message.content.split(" "))
+      usermessages[message.author] += (message.content.split(" "))
+      #print(usermessages[message.author])
+      print("saving a message")
+      usermessages[message.author] = sorted(usermessages[message.author], key=Counter(usermessages[message.author]).get, reverse=True)
+      #print(usermessages[message.author])
+      #usermessages[message.author] = set(usermessages[message.author])
+    except KeyError:
+      usermessages[message.author] = []
+      print("creating a new list")
     #a few fun things and inside jokes   
     for swear in swears:
       if (swear in message.content):
@@ -139,7 +164,7 @@ async def on_message(message):
       pass
       #await message.channel.send("mmm, robin")
     if ("gay" in  message.content):
-      await message.channel.send("is a perfectly valid sexual orientation!")
+      await message.channel.send("is okay!")
     if ("isef" in  message.content.lower()):
       await message.channel.send("HEY I KNOW A GUY WHO DID ISEF AND HAS AN ISEF GIRL")
     if ("dosa" in  message.content.lower()):
@@ -323,7 +348,13 @@ async def processmessage(message,reacter=None):
     args = argument.split(" ")
     if (args[0] == "new"):
       farms.append(farm())
-  
+  #word frequency
+  if(command == "words"):
+    target = message.mentions[0]
+    topmessages = usermessages[target]
+    topmessages = list(dict.fromkeys(topmessages))[:5]
+    output = target.name+"'s most common words are '" + "', '".join(topmessages)+"'"
+    await message.channel.send(output)
   #poll
   if(command == "poll"):
     #pp poll (question),(options, separated by spaces),(max time)
