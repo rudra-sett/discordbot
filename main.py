@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from bs4 import BeautifulSoup as BS
 from collections import Counter
 
+
 client = discord.Client()
 
 @client.event
@@ -58,10 +59,10 @@ async def getnews(endday, company,message,numarticles):
 
 ######################## recover deleted messages
 lastdeletedmessage = ""
-ldauthor = None  
+ldauthor = None
 @client.event
 async def on_message_delete(message):
-  global lastdeletedmessage 
+  global lastdeletedmessage
   global ldauthor
   lastdeletedmessage = message.content
   ldauthor = message.author.name
@@ -80,7 +81,7 @@ swears = ["fuck","cunt","shit","bitch","whore","slut","asshole","cock","pussy","
 async def punishswear(message):
   print("cursed!")
   responses = ["\*shoves soap in "+message.author.name+"'s mouth*","\*beats "+message.author.name+" for swearing*","Cleanse your mind, "+message.author.name,"smh my head, "+message.author.name,"You've got a sick mind, "+message.author.name]
-  await message.channel.send(random.choice(responses))
+  #await message.channel.send(random.choice(responses))
 ######################################
 
 ########object for nicknames
@@ -120,18 +121,6 @@ class building:
     self.xp = 0
     self.value = 10000
 ##############################################
-class college:
-  def __init__(self):
-    self.name = ""
-    self.owner = None
-    self.acceptrate = 1
-    self.faculty = []
-    self.departments = []
-    self.endowment = 10000000
-    self.budget = 5000000
-    self.enrollment = 0
-colleges = []
-##############################################
 ##########handle reactions
 @client.event
 async def on_reaction_add(reaction, user):
@@ -141,52 +130,42 @@ async def on_reaction_add(reaction, user):
 
 ############handle messages
 usermessages = {}
+customresponses = {}
 @client.event
 async def on_message(message):
     if message.author == client.user:
         return
     try:
+      #print(message.content)
+      await message.channel.send(customresponses[message.content])
+    except:
+      #print("not found in dict")
+      pass
+    '''
+    try:
       #print(message.content.split(" "))
       usermessages[message.author] += (message.content.split(" "))
       #print(usermessages[message.author])
       print("saving a message")
-      usermessages[message.author] = sorted(usermessages[message.author], key=Counter(usermessages[message.author]).get, reverse=True)
+      #usermessages[message.author] = sorted(usermessages[message.author], key=Counter(usermessages[message.author]).get, reverse=True)
       #print(usermessages[message.author])
       #usermessages[message.author] = set(usermessages[message.author])
     except KeyError:
       usermessages[message.author] = []
       print("creating a new list")
-    #a few fun things and inside jokes   
+    '''
+    #a few fun things and inside jokes
     for swear in swears:
       if (swear in message.content):
         await punishswear(message)
-    if ("robin" in message.content):
-      pass
-      #await message.channel.send("mmm, robin")
-    if ("gay" in  message.content):
-      await message.channel.send("is okay!")
-    if ("isef" in  message.content.lower()):
-      await message.channel.send("HEY I KNOW A GUY WHO DID ISEF AND HAS AN ISEF GIRL")
-    if ("dosa" in  message.content.lower()):
-      pass
-      #await message.channel.send("huh, weirdly close to dosi")
-    if ("anubhav" in  message.content.lower()):
-      pass
-      #await message.channel.send("**MOOOOOAAAAAAAANNNNNN**")
-    if ("sing" in  message.content.lower()):
-      await message.channel.send("Have you met the great singer, Atharve?")
-    if ("yash" in  message.content.lower()):
-      pass
-      #await message.channel.send("EVERYBODY IS A STINKER!!!1!!!!")
-    if ("sasha" in message.content):
-      await message.channel.send("NO SIMPING FOR SASHA")
     if 'happy birthday' in message.content.lower():
       await message.channel.send('Happy Birthday! 🎈🎉')
+
     ######receive commands
     if message.content.startswith("pp"):
         #await message.channel.send('Hello!')
         await processmessage(message)
-    
+
 ########################################################################
 async def processmessage(message,reacter=None):
   print("got this: "+message.content)
@@ -196,16 +175,27 @@ async def processmessage(message,reacter=None):
   #has an argument
   if (len(message.content.split(" ",2))>2):
     argument = message.content.split(" ",2)[2]
-  
+
+  #add custom responses
+  if (command == "cr"):
+    channel = message.channel
+    user = message.author
+    trigger = argument
+    def checkresp(m):
+      return m.channel == channel and m.author == user
+    await message.channel.send("What would you like me to respond to,'"+argument+",' with?")
+    msg = await client.wait_for('message', check=checkresp)
+    await message.channel.send("Okay, I'll respond to that with, '"+msg.content+"'")
+    customresponses[trigger] = msg.content
   #recover edits
   if (command == "er"):
     await message.channel.send(editrecoverthing)
-  
+
   #recover deletes
   if (command == "r"):
     await message.channel.send("I recovered this message: '"+lastdeletedmessage+"', from "+ldauthor)
 
-  #random number gen  
+  #random number gen
   if (command == "rng"):
     mini = 0
     maxi = 10
@@ -216,16 +206,17 @@ async def processmessage(message,reacter=None):
       pass
     num = random.randint(int(mini),int(maxi))
     await message.channel.send("Here's a random number between "+str(mini)+" and "+str(maxi)+": "+str(num))
-  
+
   #name change voter
   if (command == "cn"):
     print("name change time!")
     if (argument != "none"):
-
+      #pp cn target name
       #process stuff
       print("this the argument: "+argument)
       name = argument.split(" ",1)[1]
       user = message.mentions[0]
+      votesneeded = 5
       found = False;
       print("There are "+str(len(namechanges))+" pending changes!")
 
@@ -241,21 +232,22 @@ async def processmessage(message,reacter=None):
           if (change.member == user and change.name == name and reacter != None and reacter not in change.voters):
             change.votes += 1
             change.voters.append(reacter)
-            await message.channel.send("The request to change "+user.name+"'s name to "+name+" has "+str(change.votes)+" vote(s)! "+str(3-change.votes)+" more vote(s) needed!")
+            await message.channel.send("The request to change "+user.name+"'s name to "+name+" has "+str(change.votes)+" vote(s)! "+str(votesneeded-change.votes)+" more vote(s) needed!")
             found = True
-          if (change.votes >= 3):
+          if (change.votes >= votesneeded):
             found = True
             await message.channel.send("Changing "+user.name+"'s name to "+name+"!")
             await user.edit(nick = name)
             namechanges.remove(change)
-      
-      #tis a new name change      
+            del change
+
+      #tis a new name change
       if (found == False):
         print("new name change!")
         chng = namechange(user,name,message)
-        chng.votes = 0 
+        chng.votes = 0
         #chng.voters.append(message.author)
-        await message.channel.send("The request to change "+user.name+"'s name to "+name+" has "+str(chng.votes)+" vote(s)! "+str(3-chng.votes)+" more vote(s) needed! \nReact to the command from "+message.author.name+" with a :thumbsup: to vote!")
+        await message.channel.send("The request to change "+user.name+"'s name to "+name+" has "+str(chng.votes)+" vote(s)! "+str(votesneeded-chng.votes)+" more vote(s) needed! \nReact to the command from "+message.author.name+" with a :thumbsup: to vote!")
         #await message.add_reaction('\N{THUMBS UP SIGN}')
         namechanges.append(chng)
         print("There are "+str(len(namechanges))+" pending changes!")
@@ -292,7 +284,7 @@ async def processmessage(message,reacter=None):
     except:
       pass
     await getnews(day,subject,message,articles)
-  
+
   #rps
   if (command == "rps"):
     channel = message.channel
@@ -322,7 +314,7 @@ async def processmessage(message,reacter=None):
         if (botpick == "rock" and msg.content == "scissors"):
           botwins +=1
           await message.channel.send("You lost against Rock!"+"  ||  Score: Me: "+str(botwins)+" | "+user.name+": "+str(playerwins))
-         
+
         if (botpick == "scissors" and msg.content == "rock"):
           playerwins +=1
           await message.channel.send("You won against Scissors!"+"  ||  Score: Me: "+str(botwins)+" | "+user.name+": "+str(playerwins))
@@ -334,7 +326,7 @@ async def processmessage(message,reacter=None):
         if (botpick == "scissors" and msg.content == "paper"):
           botwins +=1
           await message.channel.send("You lost against Scissors!"+"  ||  Score: Me: "+str(botwins)+" | "+user.name+": "+str(playerwins))
-          
+
         if (botwins == 3):
           await message.channel.send("You weren't good enough, "+message.author.name)
           ended = True
@@ -351,7 +343,7 @@ async def processmessage(message,reacter=None):
   #word frequency
   if(command == "words"):
     target = message.mentions[0]
-    topmessages = usermessages[target]
+    topmessages = sorted(usermessages[target], key=Counter(usermessages[target]).get, reverse=True)
     topmessages = list(dict.fromkeys(topmessages))[:5]
     output = target.name+"'s most common words are '" + "', '".join(topmessages)+"'"
     await message.channel.send(output)
@@ -401,7 +393,7 @@ async def processmessage(message,reacter=None):
         return False
       return m.channel == channel and m.author == starter
     msg = await client.wait_for('message', check=checkoptions)
-    
+
     await message.channel.send("Please provide the amount of time the poll is to run for (Default is 60)")
     #get the max time
     def checktime(m):
@@ -411,7 +403,7 @@ async def processmessage(message,reacter=None):
       except:
         maxtime = 60
         pass
-        #await message.channel.send("Not a valid number of seconds! Defaulting to 60.") 
+        #await message.channel.send("Not a valid number of seconds! Defaulting to 60.")
       return m.channel == channel and m.author == starter
     msg = await client.wait_for('message', check=checktime)
 
@@ -424,7 +416,7 @@ async def processmessage(message,reacter=None):
       except:
         isanumber = False
       return  m.channel == channel and m.author not in voters and isanumber
-    
+
     ##### STARTING POLL!!!!
     await message.channel.send("Please respond with the following to vote on the question, '"+question+"' within the next "+str(maxtime)+" seconds!")
     #list options
@@ -434,12 +426,12 @@ async def processmessage(message,reacter=None):
     output = ""
     for idx,option in enumerate(optionnames):
       print("iterating...")
-      #await message.channel.send("Respond with "+str(idx)+" to vote for "+option+" Votes: "+str(options[option])) 
+      #await message.channel.send("Respond with "+str(idx)+" to vote for "+option+" Votes: "+str(options[option]))
       output = output + "Respond with "+str(idx)+" to vote for "+option+" Votes: "+str(options[option])+"\n"
     await message.channel.send(output)
-    running = True 
+    running = True
     #listvotes()
-    starttime = time.time()    
+    starttime = time.time()
     while running:
       elapsed = time.time()-starttime
       msg
@@ -447,14 +439,14 @@ async def processmessage(message,reacter=None):
         msg = await client.wait_for('message', check=check,timeout=(maxtime-elapsed))
       except asyncio.TimeoutError:
         msg = message
-      try: 
+      try:
         options[optionnames[int(msg.content)]] += 1
         voters.append(msg.author)
         await message.channel.send(msg.author.name+" voted for "+optionnames[int(msg.content)])
         output = ""
         for idx,option in enumerate(optionnames):
           print("iterating...")
-          #await message.channel.send("Respond with "+str(idx)+" to vote for "+option+" Votes: "+str(options[option])) 
+          #await message.channel.send("Respond with "+str(idx)+" to vote for "+option+" Votes: "+str(options[option]))
           output = output + "Respond with "+str(idx)+" to vote for "+option+" Votes: "+str(options[option])+"\n"
         await message.channel.send(output)
       except IndexError:
@@ -466,7 +458,7 @@ async def processmessage(message,reacter=None):
       if (elapsed > maxtime):
         running = False
         print("this happened!")
-    maxkey = max(options, key=options.get) 
-    print(maxkey) 
+    maxkey = max(options, key=options.get)
+    print(maxkey)
     await message.channel.send("The option with the highest votes was "+maxkey+"!")
 client.run(os.getenv('TOKEN'))
