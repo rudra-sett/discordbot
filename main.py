@@ -93,34 +93,7 @@ class namechange:
     self.votes =0
     self.voters = []
 namechanges = []
-################ farming things
-class farm:
-  def __init__(self):
-    self.level = 1
-    self.xp = 0
-    self.bal = 0
-    self.land = 60
-    self.debt = 15000
-    self.animals = []
-    self.buildings = []
-    self.owner = None
-farms = []
-animalclasses = ["cow","horse","pig","chicken","sheep"]
-class animal:
-  def __init__(self,type,attack,defense,level,xp):
-    self.type = ""
-    self.attack = 1
-    self.level = 1
-    self.xp = 0
-    self.age = 0
-buildingclasses = ["barn","stable"]
-class building:
-  def __init__(self,type):
-    self.type = ""
-    self.level = 1
-    self.xp = 0
-    self.value = 10000
-##############################################
+########################
 ##########handle reactions
 @client.event
 async def on_reaction_add(reaction, user):
